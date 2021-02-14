@@ -1,4 +1,4 @@
-module msrv32_instruction_mux(
+module msrv32_instruction_decoder(
     flush_in, msrv_riscv32_mp_instr_in, 
     opcode_out, funct3_out, funct7_out, rs1_addr_out, rs2_addr_out, rd_addr_out, csr_addr_out, instr__31_7_out);
 
