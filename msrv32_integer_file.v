@@ -16,7 +16,7 @@ module msrv32_integer_file(
     integer i;
 
     
-    always@(posedge msrv32_mp_clk_in, negedge msrv32_mp_rst_in) begin
+    always@(posedge msrv32_mp_clk_in, posedge msrv32_mp_rst_in) begin
         reg_file[0]<= 32'd0;
 
         if(msrv32_mp_rst_in) begin
