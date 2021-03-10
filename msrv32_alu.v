@@ -28,7 +28,24 @@ module msrv32_alu(
 
             ALU_SUB: result_out = op_1_in - op_2_in;
 
-            ALU_SLT: 
+            ALU_SLT: result_out = (op_1_in[31] < op_2_in[31]) ? ({31'd0, 1'b1}) : 32'd0; //DOUBT FOR 31st bit comparison
+
+            ALU_SLTU: result_out = (op_1_in < op_2_in) ? ({31'd0, 1'b1}) : 32'd0;
+
+            ALU_AND: result_out = op_1_in & op_2_in;
+
+            ALU_OR: result_out = op_1_in | op_2_in;
+
+            ALU_XOR: result_out = op_1_in ^ op_2_in;
+
+            ALU_SLL: result_out = op_1_in << op_2_in;
+
+            ALU_SRL: result_out = op_1_in >> op_2_in;
+
+            ALU_SRA: result_out = op_1_in >>> op_2_in;
+
             default: 
         endcase
     end
+
+endmodule
