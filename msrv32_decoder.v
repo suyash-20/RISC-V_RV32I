@@ -9,7 +9,7 @@ module msrv32_decoder(
     input [2:0] funct3_in;
     input [1:0] iadder_out_1_to_0_in;
 
-    output reg [2:0] wb_mux_sel_out, imm_type_out, csr_op_out;
+    output [2:0] wb_mux_sel_out, imm_type_out, csr_op_out;  //assign statement, hence wire type output signals
     output reg [3:0] alu_opcode_out;
     output reg [1:0] load_size_out;
 
@@ -36,6 +36,8 @@ module msrv32_decoder(
         alu_opcode_out overall logic alongwith the concatenation and micro-architecture
 
     */ 
+
+    assign alu_src_out = (opcode_in[5]) ? is_op : is_op_imm;
 
     //=================================================================================
 
@@ -115,34 +117,139 @@ module msrv32_decoder(
 
     end
 
+
+    //load_size_out load_unsigned_out Logic
+
+    always @(*) begin
+
+        if(opcode_in == 000_0011)begin
+            case(funct3_in)
+
+                3'b000: begin
+                    load_size_out = funct3_in[1:0];
+                    load_unsigned_out = funct3_in[2];
+
+                    misaligned_load_out = 0;
+                end
+
+                3'b001: begin
+                    load_size_out = funct3_in[1:0];
+                    load_unsigned_out = funct3_in[2];
+
+                    if(iadder_out_1_to_0_in[0] == 0)
+                        misaligned_load_out = 0;
+                    else
+                        misaligned_load_out = 1;
+                end
+
+                3'b010: begin
+                    load_size_out = funct3_in[1:0];
+                    load_unsigned_out = funct3_in[2];
+
+                    if(iadder_out_1_to_0_in[1:0]==2'b00)
+                        misaligned_load_out = 0;
+                    else
+                        misaligned_load_out = 1;
+                end
+
+                3'b100: begin
+                    load_size_out = funct3_in[1:0];
+                    load_unsigned_out = funct3_in[2];
+
+                    misaligned_load_out = 0;
+                end
+
+                3'b101: begin
+                    load_size_out = funct3_in[1:0];
+                    load_unsigned_out = funct3_in[2];
+
+                    if(iadder_out_1_to_0_in[0] == 0)
+                        misaligned_load_out = 0;
+                    else
+                        misaligned_load_out = 1;
+                end
+
+            endcase
+        end
+        
+    end
+
+
+    always @(*) begin
+
+        if(opcode_in == 010_0011)begin
+            case(funct3_in)
+
+                3'b000: begin
+                    misaligned_store_out = 0;
+                end
+
+                3'b001: begin
+                    if(iadder_out_1_to_0_in[0]==0)
+                        misaligned_store_out = 0;
+                    else
+                        misaligned_store_out = 1;
+                end
+
+                3'b010: begin
+                    if(iadder_out_1_to_0_in[1:0]==2'b00)
+                        misaligned_store_out = 0;
+                    else
+                        misaligned_store_out = 1;
+                end
+            endcase
+        end
+        
+    end
+
+
     //=======================================================================  IS_CSR LOGIC ======================================================================= \\
 
-    assign is_csr = is_system & (funct3_in[0] | funct3_in[1] | funct3_in[2])
+    assign is_csr = is_system & (~(funct3_in[0] | funct3_in[1] | funct3_in[2]));
 
 
     //=============================================FUNCTIONAL BLOCK PENDING 
 
-    assign is_implemented_instr = (is_branch | is_jal | is_jalr | is_auipc | is_lui, is_op | is_op_imm | is_load | is_store | is_system | is_misc_mem);
-    
+
     //=============== WB_MUX_SEL_OUT Logic
 /*
     WB_MUX_SEL_OUT       |    
 ____________________________________________________________________________________________________________________________________________
-    000  WB_MUX          |
-    001  WB_LU           |  {[ LSB => is_load]}
-    010  WB_IMM          |  {[ [1] => ]}
-    011  WB_IADER_OUT    |  {[ [1] => is_branch, is_jal, is_jalr, is_lui, is_auipc]} { [LSB => is_branch, is_jal, is_jalr, is_lui, is_auipc]}
+    000  WB_MUX/ALU      |  {is_op, is_op_imm}
+    
+    001  WB_LU           |  {[ LSB => is_load, is_op, is_op_imm, is_lui, is_auipc]}
+    
+    010  WB_IMM(imm)  |  {[ [1] => is_op_imm, is_store, is_jalr, is_load]}
+    
+    011  WB_IADER_OUT(pc/rs+ imm) |  {[ [1] => is_op_imm, is_branch, is_jal, is_jalr, is_auipc]} { [LSB => is_op_imm, is_branch, is_jal, is_jalr, is_auipc]}
+    
     100  WB_CSR          |  { [MSB => is_csr]} 
-    101  WB_PC_PLUS      |  { [MSB => is_jal, is_jalr, is_auipc, is_lui, is_csr]} { [LSB => is_jal, is_jalr, is_auipc, is_lui, is_csr ]}
+    
+    101  WB_PC_PLUS      |  { [MSB => is_branch, is_jal, is_jalr, is_auipc, is_lui, is_csr]} { [LSB => is_branch, is_jal, is_jalr, is_auipc, is_lui, is_csr ]}
 
 
 */
+
+    assign wb_mux_sel_out[2] =  (is_jal | is_jalr | is_auipc | is_lui | is_csr | is_branch) ? 1 : 0;
+    assign wb_mux_sel_out[1] = (is_load | is_store | is_branch | is_jal | is_jalr | is_auipc | is_op_imm) ? 1: 0;
+    assign wb_mux_sel_out[0] = (is_jal | is_jalr | is_lui | is_csr | is_branch | is_lui | is_auipc | is_load) ? 1 : 0;
+
+//    imm_type_out Logic
+
+    assign imm_type_out[0] = (is_op_imm | is_branch | is_jal | is_jalr);
+    assign imm_type_out[1] = (is_store | is_branch | is_csr | is_op_imm | is_jalr);
+    assign imm_type_out[2] = (is_lui | is_auipc | is_jal | is_csr | is_op_imm | is_jalr);
+
+
+//    rf_wr_en_out Logic
+
+    assign rf_wr_en_out = (is_op | is_op_imm | is_load | is_jal | is_jalr | is_lui | is_auipc);
+
     //=================================================================================
 
 
-    //============ imm_type_out AND csr_op_out Logic
+    //============ csr_op_out Logic
 
-    assign imm_type_out = funct3_in;  //DOUBT WITH THE MICRO-ARCHITECTURE
     assign csr_op_out = funct3_in;
 
     //============ csr_wr_en_out Logic
@@ -151,7 +258,10 @@ ________________________________________________________________________________
     
     //=================================================================================
 
+    //is_implemented_instr Logic
     
+    assign is_implemented_instr = (is_branch | is_jal | is_jalr | is_auipc | is_lui | is_op | is_op_imm | is_load | is_store | is_system | is_misc_mem);
+
     //====================== illegal_instr_out Logic 
 
     assign illegal_instr_out =  (~(is_implemented_instr) | ~(opcode_in[1]) | ~(opcode_in[0]));
@@ -191,3 +301,14 @@ ________________________________________________________________________________
     assign alu_opcode_out[2:0] = funct3_in;
     
     //=================================================================================
+
+    
+    
+    //====================== mem_wr_req_out Logic
+
+    assign mem_wr_req_out = (((funct3_in[1:0] == 2'b01 && iadder_out_1_to_0_in[0] == 1'b0) || 
+      (funct3_in[1:0] == 2'b10 && iadder_out_1_to_0_in[1:0] == 2'b00)) 
+      && (trap_taken_in == 1'b0)) ? 1'b1 : 1'b0;
+
+
+endmodule
