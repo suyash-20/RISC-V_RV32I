@@ -10,13 +10,13 @@ module msrv32_integer_file(
     input [ADDR_WIDTH-1:0]rs_2_addr_in, rd_addr_in, rs_1_addr_in;
     input [WIDTH-1:0]rd_in;
 
-    output reg [WIDTH-1:0] rs_1_out, rs_2_out;
+    output [WIDTH-1:0] rs_1_out, rs_2_out; //Assign statement, hence wire type output signals
 
     reg[WIDTH-1:0]reg_file[0:DEPTH-1];
     integer i;
 
     
-    always@(posedge msrv32_mp_clk_in, negedge msrv32_mp_rst_in) begin
+    always@(posedge msrv32_mp_clk_in, posedge msrv32_mp_rst_in) begin
         reg_file[0]<= 32'd0;
 
         if(msrv32_mp_rst_in) begin
