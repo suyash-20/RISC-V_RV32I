@@ -23,14 +23,14 @@ module msrv32_branch_unit(
             case(funct3_in)
 
                 3'b000: begin
-                            if(rs1_in==rs2_in)
+                            if(rs1_in == rs2_in)
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
                 end
 
                 3'b001: begin
-                            if(rs1_in!=rs2_in)
+                            if(rs1_in != rs2_in)
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
@@ -44,21 +44,21 @@ module msrv32_branch_unit(
                 end
 
                 3'b101: begin
-                            if(rs1_in=>rs2_in)  //doubt unsigned
+                            if(x >= y)  //doubt unsigned
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
                 end
 
                 3'b110: begin
-                            if(rs1_in<rs2_in) //doubt unsigned
+                            if(rs1_in < rs2_in) //doubt unsigned
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
                 end
 
                 3'b111: begin
-                            if(rs1_in=>rs2_in)  //doubt unsigned
+                            if(rs1_in >= rs2_in)  //doubt unsigned
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
@@ -73,11 +73,11 @@ module msrv32_branch_unit(
             if(opcode_6_to_2_in == 5'b11_011)
                 branch_taken_out = 1'b1;
             else if (opcode_6_to_2_in == 5'b11_001) begin
-                if(funct3_in==3'b000)
+                if(funct3_in == 3'b000)
                     branch_taken_out = 1'b1;
             end
             else 
-                branch_taken_out =1'b0;
+                branch_taken_out = 1'b0;
         end
     end
 

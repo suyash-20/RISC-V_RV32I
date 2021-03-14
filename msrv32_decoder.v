@@ -10,20 +10,22 @@ module msrv32_decoder(
     input [1:0] iadder_out_1_to_0_in;
 
     output [2:0] wb_mux_sel_out, imm_type_out, csr_op_out;  //assign statement, hence wire type output signals
-    output reg [3:0] alu_opcode_out;
+    output [3:0] alu_opcode_out; //assign statement, hence wire type output signals
     output reg [1:0] load_size_out;
 
-    output reg mem_wr_req_out, load_unsigned_out, alu_src_out, iadder_src_out;
-    output reg csr_wr_en_out, rf_wr_en_out, misaligned_load_out, misaligned_store_out;
-    output illegal_instr_out;
+    output reg load_unsigned_out, iadder_src_out;
+    output reg misaligned_load_out, misaligned_store_out;
+    output alu_src_out, rf_wr_en_out, csr_wr_en_out, mem_wr_req_out, illegal_instr_out; //assign statement, hence wire type output signals
+    
     //========Micro-architecture DEMUX Logic [INTERNAL SIGNALS]
-    reg [4:0] opcode__reg_sel;
+    wire is_csr; //NOT FROM DEMUX OUTPUTS ___ Assign statement, hence wire type
+    wire [4:0] opcode_reg_sel;  // Assign statement, hence wire type
     reg is_branch, is_jal, is_jalr, is_auipc, is_lui, is_op;
     reg is_op_imm, is_load, is_store, is_system, is_misc_mem;
-    reg is_csr; //NOT FROM DEMUX OUTPUTS
+    
 
 
-    wire is_implemented_instr;
+    wire is_implemented_instr; //Assign statement, hence wire type
 
     //========Micro-architecture DEMUX Logic for alu_opcode_out [INTERNAL SIGNALS]
     reg is_addi_in, is_slti_in, is_sltiu_in, is_andi_in, is_ori_in, is_xori_in; //input stage signals
@@ -45,10 +47,10 @@ module msrv32_decoder(
 
     //====================== DEMUX Logic from the micro-architecture
 
-    assign opcode__reg_sel = opcode_in[6:2];
+    assign opcode_reg_sel = opcode_in[6:2];
 
     always @(*) begin
-        case(opcode__reg_sel)
+        case(opcode_reg_sel)
 
             5'b11_000: begin
                         is_branch = 1'b1;

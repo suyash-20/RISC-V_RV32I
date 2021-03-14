@@ -3,7 +3,7 @@ module msrv32_load_unit(
     lu_output_out
 );
 
-paramter WIDTH = 32;
+parameter WIDTH = 32;
 
 input load_unsigned_in;
 input [1:0] load_size_in, iadder_out_1_to_0_in;
@@ -36,14 +36,14 @@ always@(*)begin
         end 
 
         2'b01: begin
-            if(iadder_out_1_to_0_in[0] = 1'b0)
+            if(iadder_out_1_to_0_in[0] == 1'b0)
                 lu_output_out = {16'd0, ms_riscv32_mp_dmdata_in[15:0]};
             
-            else if(iadder_out_1_to_0_in[0] =1'b1)
+            else if(iadder_out_1_to_0_in[0] == 1'b1)
                 lu_output_out = {ms_riscv32_mp_dmdata_in[15:0], 16'd0};
             
             else
-                lu_output_out = 32'd0
+                lu_output_out = 32'd0;
         end
 
         2'b10: begin

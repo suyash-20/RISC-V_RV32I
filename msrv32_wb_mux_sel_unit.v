@@ -5,7 +5,7 @@ module msrv32_wb_mux_sel_unit(
 
     parameter WIDTH = 32;
 
-    parameter WB_MUX = 3'b000, //==========same as WB_ALU ??
+    parameter WB_MUX = 3'b000, //==========same as WB_ALU 
               WB_LU = 3'b001,
               WB_IMM = 3'b010,
               WB_IADDER_OUT = 3'b011,
@@ -24,7 +24,7 @@ module msrv32_wb_mux_sel_unit(
 
         case (wb_mux_sel_reg_in)
             
-            WB_MUX: wb_mux_out = alu_result_in;     //same as WB_ALU ??
+            WB_MUX: wb_mux_out = alu_result_in;     //same as WB_ALU
 
             WB_LU: wb_mux_out = lu_output_in;
 

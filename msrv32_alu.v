@@ -43,8 +43,7 @@ module msrv32_alu(
             ALU_SRL: result_out = op_1_in >> op_2_in[4:0];
 
             ALU_SRA: result_out = op_1_in >>> op_2_in[4:0];
-
-            default: 
+            
         endcase
     end
 
