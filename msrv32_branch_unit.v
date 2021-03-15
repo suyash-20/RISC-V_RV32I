@@ -10,12 +10,12 @@ module msrv32_branch_unit(
     input [MSB_VALUE:LSB_VALUE]opcode_6_to_2_in;  //============ opcode_6_to_2_in OR opcode_in??????
     input [2:0]funct3_in;
 
-    wire signed [WIDTH-1:0] rs1_signed ,rs2_signed;
-
     output reg branch_taken_out;
 
-    assign x = rs1_in;
-    assign y = rs2_in;
+    wire signed [WIDTH-1:0] rs1_signed ,rs2_signed;
+
+    assign rs1_signed = rs1_in;
+    assign rs2_signed = rs2_in;
 
 
     always@(*)begin
@@ -37,14 +37,14 @@ module msrv32_branch_unit(
                 end
 
                 3'b100: begin
-                            if(x < y)  //doubt in signed representation
+                            if(rs1_signed < rs2_signed)  //doubt in signed representation
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;
                 end
 
                 3'b101: begin
-                            if(x >= y)  //doubt unsigned
+                            if(rs1_signed >= rs2_signed)  //doubt unsigned
                                 branch_taken_out = 1'b1;
                             else
                                 branch_taken_out =1'b0;

@@ -12,7 +12,7 @@ module msrv32_instruction_decoder(
     output reg [2:0] funct3_out;
     output reg [ADDR_WIDTH-1:0]rs1_addr_out, rs2_addr_out, rd_addr_out;
     output reg [11:0]csr_addr_out;
-    output reg [24:0]instr__31_7_out;
+    output reg [24:0]instr_31_7_out;
     reg [WIDTH-1:0] instr_mux_temp;
 
 
@@ -28,7 +28,7 @@ module msrv32_instruction_decoder(
                     rs1_addr_out = instr_mux_temp[19:15];
                     rs2_addr_out = instr_mux_temp[24:20];
                     rd_addr_out = instr_mux_temp[11:7];
-                    instr__31_7_out = instr_mux_temp[31:7];    
+                    instr_31_7_out = instr_mux_temp[31:7];    
                 end
         end
 
@@ -42,7 +42,7 @@ module msrv32_instruction_decoder(
                     rs1_addr_out = instr_mux_temp[19:15];
                     rs2_addr_out = instr_mux_temp[24:20];
                     rd_addr_out = instr_mux_temp[11:7];
-                    instr__31_7_out = instr_mux_temp[31:7];    
+                    instr_31_7_out = instr_mux_temp[31:7];    
                 end
                 
         end
