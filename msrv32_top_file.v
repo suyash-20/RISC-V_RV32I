@@ -59,7 +59,8 @@ assign ms_riscv32_mp_imaddr_out = iadder_out;
 
     wire msrv32_mp_clk_in, msrv32_mp_rst_in;
 	wire  wr_en_in;
-    wire [4:0]rs_2_addr_in, rd_addr_in, rs_1_addr_in;
+    wire [4:0]rs_2_addr_in, rs_1_addr_in;
+	wire [4:0] rd_addr_in;
     wire [31:0]rd_in;
 
     wire [31:0] rs_1_out, rs_2_out;
@@ -83,7 +84,8 @@ wire wr_en_csr_file_out;
     //wire flush_in;
     //wire [31:0]msrv_riscv32_mp_instr_in;
 
-    wire [6:0]opcode_out, funct7_out;
+    wire [6:0] opcode_out;
+	wire [6:0] funct7_out;
     wire [2:0] funct3_out;
     wire [4:0]rs1_addr_out, rs2_addr_out, rd_addr_out;
     wire [11:0]csr_addr_out;
@@ -106,7 +108,8 @@ wire wr_en_csr_file_out;
 
 //// decoder signal wire declaration
 
-    wire trap_taken_in, funct7_5_in;
+    wire trap_taken_in;
+	wire funct7_5_in;
     wire [6:0] opcode_in;
     wire [2:0] funct3_in;      //should be included or not ???
     wire [1:0] iadder_out_1_to_0_in;
@@ -149,7 +152,7 @@ wire flush_out;
 wire trap_taken_out;
 
 wire e_irq_in,t_irq_in, s_irq_in,mie_in;
-wire rst_in;
+//wire rst_in;
 
 
 wire meie_in;
@@ -211,10 +214,10 @@ wire  		mie_out;
     wire [1:0] load_size_in;
     wire [2:0] wb_mux_sel_in, csr_op_in;
     wire [3:0] alu_opcode_in;
-    wire [4:0]rd_addr_in;
+//    wire [4:0]rd_addr_in;
     wire [11:0] csr_addr_in;
     //wire [31:0] rs1_in, rs2_in, pc_in;
-	wire [31:0] pc_plus_4_in, iadder_out_in
+	wire [31:0] pc_plus_4_in, iadder_out_in;
 	//wire [31:0] imm_in;
 
     wire load_unsigned_reg_out, alu_src_reg_out, csr_wr_en_reg_out, rf_wr_en_reg_out;  //branch_taken_in output equivalent signal ???
@@ -261,7 +264,7 @@ wire [31:0] lu_output_out;
 
 wire [31:0] op_1_in;
 wire [31:0] op_2_in;
-wire [3:0] opcode_in;
+//wire [3:0] opcode_in;
 
 wire [31:0] result_out;
 
@@ -306,8 +309,8 @@ wire [31:0] alu_2nd_src_mux_out;
 /// REG BLOCK 1 INSTANTIATION
 
 	msrv32_reg_block_1 REG_BLOCK_1( 	
-							.ms_riscv32_mp_clk_in(ms_riscv32_mp_clk_in),
-							.ms_riscv32_mp_rst_in(ms_riscv32_mp_rst_in), 
+							.msrv32_mp_clk_in(ms_riscv32_mp_clk_in),
+							.msrv32_mp_rst_in(ms_riscv32_mp_rst_in), 
 							.pc_mux_in(pc_mux_out), 
 							.pc_out(pc_out));
 
@@ -330,8 +333,8 @@ wire [31:0] alu_2nd_src_mux_out;
 /// INTERGER FILE INSTANTIATION
 
 	msrv32_integer_file INTEGER_FILE(
-							.ms_riscv32_mp_clk_in(ms_riscv32_mp_clk_in),
-							.ms_riscv32_mp_rst_in(ms_riscv32_mp_rst_in),
+							.msrv32_mp_clk_in(ms_riscv32_mp_clk_in),
+							.msrv32_mp_rst_in(ms_riscv32_mp_rst_in),
 							.wr_en_in(wr_en_int_file_out), 
 							.rs_1_addr_in(rs1_addr_out),
 							.rs_2_addr_in(rs2_addr_out), 
@@ -349,14 +352,14 @@ wire [31:0] alu_2nd_src_mux_out;
 							.wr_en_int_file_out(wr_en_int_file_out), 
 							.wr_en_csr_file_out(wr_en_csr_file_out));
 
-/// INSTRUCTION MUX INSTANTIATION
+/// INSTRUCTION  INSTANTIATION
 
-	msrv32_instruction_mux INSTRUCTION_MUX(
+	msrv32_instruction_decoder INSTRUCTION_DEC(
 							.flush_in(flush_out), 
 							.ms_riscv32_mp_instr_in(ms_riscv32_mp_instr_in),
 							.opcode_out(opcode_out), 
-							.func7_out(func7_out), 
-							.func3_out(func3_out), 
+							.funct7_out(func7_out), 
+							.funct3_out(func3_out), 
 							.rs1_addr_out(rs1_addr_out),
 							.rs2_addr_out(rs2_addr_out),
 							.rd_addr_out(rd_addr_out),
@@ -369,16 +372,16 @@ wire [31:0] alu_2nd_src_mux_out;
 							.rs1_in(rs_1_out),
 							.rs2_in(rs_2_out), 
 							.opcode_in(opcode_out[6:2]), 
-							.func3_in(func3_out), 
+							.funct3_in(func3_out), 
 							.branch_taken_out(branch_taken_out));
 
 /// DECODER INSTANTIATION
 
 	msrv32_decoder DECODER(
 							.trap_taken_in(trap_taken_out),
-							.func7_5_in(func7_out[5]), 
+							.funct7_5_in(funct7_out[5]), 
 							.opcode_in(opcode_out),
-							.func3_in(func3_out), 
+							.funct3_in(func3_out), 
 							.iadder_out_1_to_0_in(iadder_out[1:0]),
 							.wb_mux_sel_out(wb_mux_sel_out),
 							.imm_type_out(imm_type_out),
@@ -388,7 +391,7 @@ wire [31:0] alu_2nd_src_mux_out;
 							.load_size_out(load_size_out),
 							.load_unsigned_out(load_unsigned_out),
 							.alu_src_out(alu_src_out),
-							.iaddr_src_out(iaddr_src_out),
+							.iadder_src_out(iaddr_src_out),
 							.csr_wr_en_out(csr_wr_en_out),
 							.rf_wr_en_out(rf_wr_en_out),
 							.illegal_instr_out(illegal_instr_out),
@@ -518,8 +521,8 @@ wire [31:0] alu_2nd_src_mux_out;
 /// STORE UNIT INSTANTIATION
 
 	msrv32_store_unit STORE_UNIT(
-							.func3_in(func3_out[1:0]),
-							.iaddr_in(iadder_out),
+							.funct3_in(funct3_out[1:0]),
+							.iadder_in(iadder_out),
 							.rs2_in(rs_2_out),
 							.mem_wr_req_in(mem_wr_req_out),
 							.ms_riscv32_mp_dmaddr_out(ms_riscv32_mp_dmaddr_out),
