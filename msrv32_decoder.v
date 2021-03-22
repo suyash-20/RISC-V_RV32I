@@ -11,10 +11,11 @@ module msrv32_decoder(
 
     output [2:0] wb_mux_sel_out, imm_type_out, csr_op_out;  //assign statement, hence wire type output signals
     output [3:0] alu_opcode_out; //assign statement, hence wire type output signals
-    output reg [1:0] load_size_out;
+    output [1:0] load_size_out;
 
-    output reg load_unsigned_out, iadder_src_out;
-    output reg misaligned_load_out, misaligned_store_out;
+    output load_unsigned_out;
+    output reg iadder_src_out;
+    output misaligned_load_out, misaligned_store_out;
     output alu_src_out, rf_wr_en_out, csr_wr_en_out, mem_wr_req_out, illegal_instr_out; //assign statement, hence wire type output signals
     
     //========Micro-architecture DEMUX Logic [INTERNAL SIGNALS]
@@ -26,6 +27,10 @@ module msrv32_decoder(
 
 
     wire is_implemented_instr; //Assign statement, hence wire type
+    
+
+    //========= misaligned logic {ASSIGN STATEMENT}
+    wire misalignment, mal_word,mal_half_word;
 
     //========Micro-architecture DEMUX Logic for alu_opcode_out [INTERNAL SIGNALS]
     reg is_addi_in, is_slti_in, is_sltiu_in, is_andi_in, is_ori_in, is_xori_in; //input stage signals
@@ -121,7 +126,7 @@ module msrv32_decoder(
 
 
     //load_size_out load_unsigned_out Logic
-
+/*
     always @(*) begin
 
         if(opcode_in == 000_0011)begin
@@ -131,15 +136,15 @@ module msrv32_decoder(
                     load_size_out = funct3_in[1:0];
                     load_unsigned_out = funct3_in[2];
 
-                    misaligned_load_out = 0;
+//                    misaligned_load_out = 0;
                 end
 
                 3'b001: begin
                     load_size_out = funct3_in[1:0];
                     load_unsigned_out = funct3_in[2];
 
-                    if(iadder_out_1_to_0_in[0] == 0)
-                        misaligned_load_out = 0;
+  /*                  if(iadder_out_1_to_0_in[0] == 0)
+                       misaligned_load_out = 0;
                     else
                         misaligned_load_out = 1;
                 end
@@ -203,6 +208,22 @@ module msrv32_decoder(
         end
         
     end
+*/
+    // misalignment of load and store 
+    assign mal_word = funct3_in[1] & ~funct3_in[0] & (iadder_out_1_to_0_in[1]|iadder_out_1_to_0_in[0]);
+    assign mal_half_word = funct3_in[0] & ~funct3_in[1] & (iadder_out_1_to_0_in[0]);
+    assign misaligned = mal_word | mal_half_word;
+    assign misaligned_store_out= misaligned & is_store;
+    assign misaligned_load_out= misaligned & is_load;
+
+
+
+    assign load_size_out =funct3_in [1:0];  // load_size_out is the same as last 2bits of func3_in
+
+    assign load_unsigned_out = funct3_in[2];
+
+
+
 
 
     //=======================================================================  IS_CSR LOGIC ======================================================================= \\
@@ -232,10 +253,9 @@ ________________________________________________________________________________
 
 */
 
-    assign wb_mux_sel_out[2] =  (is_jal | is_jalr | is_auipc | is_lui | is_csr | is_branch) ? 1 : 0;
-    assign wb_mux_sel_out[1] = (is_load | is_store | is_branch | is_jal | is_jalr | is_auipc | is_op_imm) ? 1: 0;
-    assign wb_mux_sel_out[0] = (is_jal | is_jalr | is_lui | is_csr | is_branch | is_lui | is_auipc | is_load) ? 1 : 0;
-
+    assign wb_mux_sel_out[2] =  (is_jal | is_jalr | is_csr) ? 1 : 0;
+    assign wb_mux_sel_out[1] = (is_lui | is_auipc) ? 1: 0;
+    assign wb_mux_sel_out[0] = (is_jal | is_jalr | is_auipc | is_load) ? 1 : 0;
 //    imm_type_out Logic
 
     assign imm_type_out[0] = (is_op_imm | is_branch | is_jal | is_jalr);
