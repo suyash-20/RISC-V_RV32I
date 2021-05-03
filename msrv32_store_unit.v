@@ -57,5 +57,4 @@ assign ms_riscv32_mp_dmwr_req_out = mem_wr_req_in;
 
 assign ms_riscv32_mp_dmaddr_out = {iaddr_in[31:2],2'b0};
 
-
 endmodule
