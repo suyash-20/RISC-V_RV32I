@@ -1,65 +1,61 @@
-//Program Counter MUX module
-//combinational block
+module msrv32_store_unit(func3_in,iaddr_in,rs2_in,mem_wr_req_in,ms_riscv32_mp_dmaddr_out,ms_riscv32_mp_dmdata_out,ms_riscv32_mp_dmwr_req_out,ms_riscv32_mp_dmwr_mask_out);
 
-module msrv32_pc(
-    rst_in, pc_src_in, pc_in, epc_in, trap_address_in, branch_taken_in, iaddr_in,
-    misaligned_instr_out, pc_mux_out, pc_plus_4_out, i_addr_out);
+input [1:0] func3_in;
+input [31:0] iaddr_in;
+input [31:0] rs2_in;
+input mem_wr_req_in;
 
-    parameter WIDTH =32;
+output reg [31:0] ms_riscv32_mp_dmdata_out;
+output [31:0] ms_riscv32_mp_dmaddr_out;
+output reg [3:0] ms_riscv32_mp_dmwr_mask_out;
+output ms_riscv32_mp_dmwr_req_out;
 
-    input rst_in, branch_taken_in;
-    input [1:0]pc_src_in;
-    input [WIDTH-1:0]pc_in, epc_in, trap_address_in;
-    input [30:0] iaddr_in;
+always@(*)
+begin
+	case(func3_in)
+	2'b00	:	begin
+					case(iaddr_in[1:0])
+					2'b00	:	begin
+								ms_riscv32_mp_dmdata_out = {8'd0,8'd0,8'd0,rs2_in[7:0]};
+								ms_riscv32_mp_dmwr_mask_out = {1'b0,1'b0,1'b0,mem_wr_req_in};
+								end								
+					2'b01	:	begin
+								ms_riscv32_mp_dmdata_out = {8'd0,8'd0,rs2_in[7:0],8'd0};
+								ms_riscv32_mp_dmwr_mask_out = {1'b0,1'b0,mem_wr_req_in,1'b0};
+								end
+					2'b10	:	begin
+								ms_riscv32_mp_dmdata_out = {8'd0,rs2_in[7:0],8'd0,8'd0};
+								ms_riscv32_mp_dmwr_mask_out = {1'b0,mem_wr_req_in,1'b0,1'b0};
+								end
+					2'b11	:	begin
+								ms_riscv32_mp_dmdata_out = {rs2_in[7:0],8'd0,8'd0,8'd0};
+								ms_riscv32_mp_dmwr_mask_out = {mem_wr_req_in,1'b0,1'b0,1'b0};
+								end
+					endcase
+				end	
+	2'b01	:	begin
+					case(iaddr_in[1])
+					1'b0	:	begin
+								ms_riscv32_mp_dmdata_out = {16'd0,rs2_in[15:0]};
+								ms_riscv32_mp_dmwr_mask_out = {2'd0,{2{mem_wr_req_in}}};
+								end
+					1'b1 	:	begin
+								ms_riscv32_mp_dmdata_out = {rs2_in[15:0],16'd0};
+								ms_riscv32_mp_dmwr_mask_out = {{2{mem_wr_req_in}},2'd0};
+								end
+					endcase
+				end
+	2'b10	:	begin
+					ms_riscv32_mp_dmdata_out = rs2_in;
+					ms_riscv32_mp_dmwr_mask_out = {4{mem_wr_req_in}};
+				end
+	endcase
+end
 
 
+assign ms_riscv32_mp_dmwr_req_out = mem_wr_req_in;
 
-    output reg misaligned_instr_out;
-    output reg [WIDTH-1:0]pc_mux_out, pc_plus_4_out, i_addr_out;
+assign ms_riscv32_mp_dmaddr_out = {iaddr_in[31:2],2'b0};
 
-    //wire definitions
-    wire [WIDTH-1:0]pc_adder; //output of PC + 4
-    wire [WIDTH-1:0]IADDR_OUT; //output of concatenation
-    wire [WIDTH-1:0]next_pc; //wire for mux output? DOUBT
-
-    reg BOOT_ADDRESS = 32'd13;
-
-    always@(*) begin
-
-        pc_plus_4_out = pc_in + 32'h0000_0004;
-
-//        case(branch_taken_in)
-//            1'b0: next_pc = pc_plus_4_out;
-
-//            1'b1: next_pc = iaddr_out;
-//        endcase
-
-    end
-
-    always@(*) begin
-
-        case(pc_src_in)
-            2'b00: pc_mux_out = BOOT_ADDRESS;
-
-            2'b01: pc_mux_out = epc_in;
-
-            2'b10: pc_mux_out = trap_address_in;
-
-            2'b11: pc_mux_out = next_pc;
-        endcase
-        
-        misaligned_instr_out = next_pc[1] && branch_taken_in;
-        
-    end
-
-    always@(*) begin
-        case(rst_in)
-            1'b0: i_addr_out = pc_mux_out;
-            1'b1: i_addr_out = BOOT_ADDRESS;
-        endcase
-    end
-
-    assign next_pc = branch_taken_in ? IADDR_OUT : pc_plus_4_out; 
-    assign IADDR_OUT = {iaddr_in,1'b0};
 
 endmodule
